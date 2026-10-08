@@ -12,7 +12,7 @@ Node.js · Express · JavaScript · Supabase/PostgreSQL · Postman · Git/GitHub
 api-final/
 ├── config/supabase.js          # conexión con Supabase
 ├── controllers/                # lógica y validaciones
-├── middlewares/                # logger y manejo de errores
+├── middlewares/                # logger, errores y verificarToken
 ├── routes/                     # definición de rutas
 ├── server.js                   # arranque de Express
 └── .env                        # variables de entorno (no se sube)
@@ -32,6 +32,7 @@ Crea un archivo `.env` en la raíz:
 PORT=3000
 SUPABASE_URL=https://TU_PROJECT_ID.supabase.co
 SUPABASE_KEY=tu_clave_secreta
+JWT_SECRET=una_clave_larga_y_aleatoria
 ```
 
 Tabla en Supabase (SQL Editor):
@@ -67,6 +68,42 @@ Body para POST (`nombre` y `email` obligatorios, `edad` opcional):
 ```json
 { "nombre": "Antonio", "email": "antonio@email.com", "edad": 30 }
 ```
+
+## Autenticación (JWT + bcrypt)
+
+Las contraseñas se guardan con hash (bcrypt) en la tabla `cuentas`. El login devuelve un token JWT que dura 1 hora.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/auth/register` | Crea una cuenta (`nombre`, `email`, `password` de 6+ caracteres) |
+| POST | `/auth/login` | Devuelve `{ success: true, token }` |
+| GET | `/auth/perfil` | Datos de la cuenta autenticada (protegido) |
+
+Todos los endpoints de `/usuarios` son **protegidos**: hay que enviar la cabecera
+
+```text
+Authorization: Bearer <token>
+```
+
+Sin token o con token inválido responden 401.
+
+Tabla en Supabase:
+
+```sql
+create table cuentas (
+  id bigint generated always as identity primary key,
+  nombre text not null,
+  email text not null unique,
+  password_hash text not null,
+  creado_en timestamptz default now()
+);
+```
+
+Variable de entorno adicional: `JWT_SECRET` (clave aleatoria larga).
+
+## Demo en producción
+
+https://api-final-ntfx.onrender.com
 
 ## Validaciones y errores
 

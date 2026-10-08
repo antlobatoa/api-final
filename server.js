@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const logger = require("./middlewares/logger");
+const verificarToken = require("./middlewares/verificarToken");
 const {
   rutaNoEncontrada,
   manejadorErrores,
@@ -16,7 +17,8 @@ app.get("/", (req, res) => {
   res.json({ success: true, mensaje: "API de usuarios funcionando" });
 });
 
-app.use("/usuarios", require("./routes/usuarios"));
+app.use("/auth", require("./routes/auth"));
+app.use("/usuarios", verificarToken, require("./routes/usuarios"));
 
 app.use(rutaNoEncontrada);
 app.use(manejadorErrores);
